@@ -10,6 +10,7 @@ namespace SlowingModule
         public void Init(HttpApplication context)
         {
             var timeToWaitSetting = ConfigurationManager.AppSettings["SlowingModule:TimeToWait"];
+            var urlContainsFilter = ConfigurationManager.AppSettings["SlowingModule:UrlContainsFilter"];
 
             if (!int.TryParse(timeToWaitSetting, out var timeToWait))
             {
@@ -18,7 +19,18 @@ namespace SlowingModule
 
             context.BeginRequest += (object sender, EventArgs e) =>
             {
-                Thread.Sleep(timeToWait);
+                if (string.IsNullOrEmpty(urlContainsFilter))
+                {
+                    Thread.Sleep(timeToWait);
+                }
+                else
+                {
+                    if (HttpContext.Current.Request.Url.AbsoluteUri.Contains(urlContainsFilter))
+                    {
+                        Thread.Sleep(timeToWait);
+                    }
+                }
+                
             };
         }
 
